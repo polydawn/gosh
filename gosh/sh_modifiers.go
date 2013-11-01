@@ -73,6 +73,12 @@ var DefaultIO = Opts{
 	Err: os.Stderr,
 }
 
+var NullIO = Opts{
+	In:  nil,
+	Out: nil,
+	Err: nil,
+}
+
 type Env map[string]string
 
 type ClearEnv struct{}
