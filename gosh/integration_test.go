@@ -193,3 +193,21 @@ func TestIntegration_NotATty(t *testing.T) {
 		p.GetExitCode(),
 	)
 }
+
+func TestIntegration_ShDebug(t *testing.T) {
+	assert := assrt.NewAssert(t)
+
+	echo := Sh("echo")("alpha", "beta")
+
+	debugArgs := []string{"nope"}
+	echo = echo.Debug(func(cmdt *CommandTemplate) {
+		debugArgs = cmdt.Args
+	})
+
+	echo()
+
+	assert.Equal(
+		[]string{"alpha", "beta"},
+		debugArgs,
+	)
+}

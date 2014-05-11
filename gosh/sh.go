@@ -31,6 +31,8 @@ func Sh(cmd string) Command {
 
 type Command func(args ...interface{}) Command
 
+type ShDebugListener func(cmdt *CommandTemplate)
+
 // private type, used exactly once to create a const nobody else can create so we can use it as a flag to trigger private behavior
 type expose_t bool
 
@@ -98,6 +100,7 @@ func (f Command) BakeEnv(args Env) Command {
 }
 
 func (cmdt *CommandTemplate) bakeEnv(args Env) *CommandTemplate {
+	//FIXME: fork the map
 	for k, v := range args {
 		if v == "" {
 			delete(cmdt.Env, k)
@@ -142,6 +145,15 @@ func (cmdt *CommandTemplate) bakeOpts(args ...Opts) *CommandTemplate {
 	return cmdt
 }
 
+func (f Command) Debug(cb ShDebugListener) Command {
+	return enclose(f.expose().bakeDebug(cb))
+}
+
+func (cmdt *CommandTemplate) bakeDebug(cb ShDebugListener) *CommandTemplate {
+	cmdt.debug = cb
+	return cmdt
+}
+
 /**
  * Starts execution of the command.  Returns a reference to a RunningCommand,
  * which can be used to track execution of the command, configure exit listeners,
@@ -149,6 +161,11 @@ func (cmdt *CommandTemplate) bakeOpts(args ...Opts) *CommandTemplate {
  */
 func (f Command) Start() *RunningCommand {
 	cmdt := f.expose()
+
+	if cmdt.debug != nil {
+		cmdt.debug(cmdt)
+	}
+
 	rcmd := exec.Command(cmdt.Cmd, cmdt.Args...)
 
 	// set up env

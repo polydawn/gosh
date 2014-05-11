@@ -137,3 +137,24 @@ func TestShBakeArgsMagicForkedDeeper(t *testing.T) {
 		echo2.expose().Args,
 	)
 }
+
+func TestShBakeEnvForked(t *testing.T) {
+	assert := assrt.NewAssert(t)
+
+	echo := Sh("echo").ClearEnv()
+	echo1 := echo.BakeEnv(Env{"VAR": "red"})
+	echo2 := echo.BakeEnv(Env{"VAR": "blue"})
+
+	assert.Equal(
+		0,
+		len(echo.expose().Env),
+	)
+	assert.Equal(
+		"red",
+		echo1.expose().Env["VAR"],
+	)
+	assert.Equal(
+		"blue",
+		echo2.expose().Env["VAR"],
+	)
+}

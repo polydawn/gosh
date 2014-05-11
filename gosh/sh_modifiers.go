@@ -26,6 +26,8 @@ type CommandTemplate struct {
 	Env Env
 
 	Opts
+
+	debug ShDebugListener
 }
 
 type Opts struct {
