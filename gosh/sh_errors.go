@@ -32,7 +32,7 @@ type IncomprehensibleCommandModifier struct {
 }
 
 func (err IncomprehensibleCommandModifier) Error() string {
-	return fmt.Sprintf("sh: incomprehensible command modifier: do not want type \"%v\"", whoru(reflect.ValueOf(*err.wat)))
+	return fmt.Sprintf("gosh: incomprehensible command modifier: do not want type \"%v\"", whoru(reflect.ValueOf(*err.wat)))
 }
 
 func whoru(val reflect.Value) string {
@@ -60,5 +60,5 @@ type FailureExitCode struct {
 }
 
 func (err FailureExitCode) Error() string {
-	return fmt.Sprintf("sh: command \"%s\" exited with unexpected status %d", err.cmdname, err.code)
+	return fmt.Sprintf("gosh: command \"%s\" exited with unexpected status %d", err.cmdname, err.code)
 }
