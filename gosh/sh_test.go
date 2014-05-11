@@ -26,7 +26,7 @@ func TestShConstruction(t *testing.T) {
 
 	assert.Equal(
 		"echo",
-		echo.expose().cmd,
+		echo.expose().Cmd,
 	)
 }
 
@@ -39,7 +39,7 @@ func TestShBakeArgs(t *testing.T) {
 
 	assert.Equal(
 		[]string{"a", "b", "c"},
-		echo.expose().args,
+		echo.expose().Args,
 	)
 }
 
@@ -50,7 +50,7 @@ func TestShBakeArgsMagic(t *testing.T) {
 
 	assert.Equal(
 		[]string{"a", "b", "c"},
-		echo.expose().args,
+		echo.expose().Args,
 	)
 }
 
@@ -63,15 +63,15 @@ func TestShBakeArgsForked(t *testing.T) {
 
 	assert.Equal(
 		0,
-		len(echo.expose().args),
+		len(echo.expose().Args),
 	)
 	assert.Equal(
 		[]string{"a", "b"},
-		echo1.expose().args,
+		echo1.expose().Args,
 	)
 	assert.Equal(
 		[]string{"c"},
-		echo2.expose().args,
+		echo2.expose().Args,
 	)
 }
 
@@ -84,15 +84,15 @@ func TestShBakeArgsMagicForked(t *testing.T) {
 
 	assert.Equal(
 		0,
-		len(echo.expose().args),
+		len(echo.expose().Args),
 	)
 	assert.Equal(
 		[]string{"a", "b"},
-		echo1.expose().args,
+		echo1.expose().Args,
 	)
 	assert.Equal(
 		[]string{"c"},
-		echo2.expose().args,
+		echo2.expose().Args,
 	)
 }
 
@@ -105,15 +105,15 @@ func TestShBakeArgsForkedDeeper(t *testing.T) {
 
 	assert.Equal(
 		[]string{""},
-		echo.expose().args,
+		echo.expose().Args,
 	)
 	assert.Equal(
 		[]string{"", "a", "b"},
-		echo1.expose().args,
+		echo1.expose().Args,
 	)
 	assert.Equal(
 		[]string{"", "c"},
-		echo2.expose().args,
+		echo2.expose().Args,
 	)
 }
 
@@ -126,14 +126,35 @@ func TestShBakeArgsMagicForkedDeeper(t *testing.T) {
 
 	assert.Equal(
 		[]string{""},
-		echo.expose().args,
+		echo.expose().Args,
 	)
 	assert.Equal(
 		[]string{"", "a", "b"},
-		echo1.expose().args,
+		echo1.expose().Args,
 	)
 	assert.Equal(
 		[]string{"", "c"},
-		echo2.expose().args,
+		echo2.expose().Args,
+	)
+}
+
+func TestShBakeEnvForked(t *testing.T) {
+	assert := assrt.NewAssert(t)
+
+	echo := Sh("echo").ClearEnv()
+	echo1 := echo.BakeEnv(Env{"VAR": "red"})
+	echo2 := echo.BakeEnv(Env{"VAR": "blue"})
+
+	assert.Equal(
+		0,
+		len(echo.expose().Env),
+	)
+	assert.Equal(
+		"red",
+		echo1.expose().Env["VAR"],
+	)
+	assert.Equal(
+		"blue",
+		echo2.expose().Env["VAR"],
 	)
 }
