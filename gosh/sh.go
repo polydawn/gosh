@@ -22,9 +22,9 @@ import (
 )
 
 func Sh(cmd string) Command {
-	var cmdt commandTemplate
-	cmdt.cmd = cmd
-	cmdt.env = getOsEnv()
+	var cmdt CommandTemplate
+	cmdt.Cmd = cmd
+	cmdt.Env = getOsEnv()
 	cmdt.OkExit = []int{0}
 	return enclose(&cmdt)
 }
@@ -36,9 +36,9 @@ type expose_t bool
 
 const expose expose_t = true
 
-type exposer struct{ cmdt *commandTemplate }
+type exposer struct{ cmdt *CommandTemplate }
 
-func closure(cmdt commandTemplate, args ...interface{}) Command {
+func closure(cmdt CommandTemplate, args ...interface{}) Command {
 	if len(args) == 0 {
 		// an empty call is a synonym for Command.Run().
 		// if you want to just get a RunningCommand reference to track, use Command.Start() instead.
@@ -72,13 +72,13 @@ func closure(cmdt commandTemplate, args ...interface{}) Command {
 	}
 }
 
-func (f Command) expose() *commandTemplate {
+func (f Command) expose() *CommandTemplate {
 	var t exposer
 	f(expose)(&t)
 	return t.cmdt
 }
 
-func enclose(cmdt *commandTemplate) Command {
+func enclose(cmdt *CommandTemplate) Command {
 	return func(x ...interface{}) Command {
 		return closure(*cmdt, x...)
 	}
@@ -88,8 +88,8 @@ func (f Command) BakeArgs(args ...string) Command {
 	return enclose(f.expose().bakeArgs(args...))
 }
 
-func (cmdt *commandTemplate) bakeArgs(args ...string) *commandTemplate {
-	cmdt.args = append(cmdt.args, args...)
+func (cmdt *CommandTemplate) bakeArgs(args ...string) *CommandTemplate {
+	cmdt.Args = append(cmdt.Args, args...)
 	return cmdt
 }
 
@@ -97,12 +97,12 @@ func (f Command) BakeEnv(args Env) Command {
 	return enclose(f.expose().bakeEnv(args))
 }
 
-func (cmdt *commandTemplate) bakeEnv(args Env) *commandTemplate {
+func (cmdt *CommandTemplate) bakeEnv(args Env) *CommandTemplate {
 	for k, v := range args {
 		if v == "" {
-			delete(cmdt.env, k)
+			delete(cmdt.Env, k)
 		} else {
-			cmdt.env[k] = v
+			cmdt.Env[k] = v
 		}
 	}
 	return cmdt
@@ -112,8 +112,8 @@ func (f Command) ClearEnv() Command {
 	return enclose(f.expose().clearEnv())
 }
 
-func (cmdt *commandTemplate) clearEnv() *commandTemplate {
-	cmdt.env = make(map[string]string)
+func (cmdt *CommandTemplate) clearEnv() *CommandTemplate {
+	cmdt.Env = make(map[string]string)
 	return cmdt
 }
 
@@ -121,7 +121,7 @@ func (f Command) BakeOpts(args ...Opts) Command {
 	return enclose(f.expose().bakeOpts(args...))
 }
 
-func (cmdt *commandTemplate) bakeOpts(args ...Opts) *commandTemplate {
+func (cmdt *CommandTemplate) bakeOpts(args ...Opts) *CommandTemplate {
 	for _, arg := range args {
 		if arg.Cwd != "" {
 			cmdt.Cwd = arg.Cwd
@@ -149,13 +149,13 @@ func (cmdt *commandTemplate) bakeOpts(args ...Opts) *commandTemplate {
  */
 func (f Command) Start() *RunningCommand {
 	cmdt := f.expose()
-	rcmd := exec.Command(cmdt.cmd, cmdt.args...)
+	rcmd := exec.Command(cmdt.Cmd, cmdt.Args...)
 
 	// set up env
-	if cmdt.env != nil {
-		rcmd.Env = make([]string, len(cmdt.env))
+	if cmdt.Env != nil {
+		rcmd.Env = make([]string, len(cmdt.Env))
 		i := 0
-		for k, v := range cmdt.env {
+		for k, v := range cmdt.Env {
 			rcmd.Env[i] = fmt.Sprintf("%s=%s", k, v)
 			i++
 		}
@@ -215,7 +215,7 @@ func (f Command) Run() {
 			return
 		}
 	}
-	panic(FailureExitCode{cmdname: cmdt.cmd, code: exitCode})
+	panic(FailureExitCode{cmdname: cmdt.Cmd, code: exitCode})
 }
 
 /**

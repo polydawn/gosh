@@ -18,12 +18,12 @@ import (
 	"os"
 )
 
-type commandTemplate struct {
-	cmd string
+type CommandTemplate struct {
+	Cmd string
 
-	args []string
+	Args []string
 
-	env Env
+	Env Env
 
 	Opts
 }
