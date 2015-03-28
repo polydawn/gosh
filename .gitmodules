@@ -1,3 +1,12 @@
 [submodule ".gopath/src/github.com/coocood/assrt"]
 	path = .gopath/src/github.com/coocood/assrt
 	url = https://github.com/coocood/assrt
+[submodule ".gopath/src/github.com/smartystreets/goconvey"]
+	path = .gopath/src/github.com/smartystreets/goconvey
+	url = https://github.com/smartystreets/goconvey.git
+[submodule ".gopath/src/github.com/jtolds/gls"]
+	path = .gopath/src/github.com/jtolds/gls
+	url = https://github.com/jtolds/gls.git
+[submodule ".gopath/src/github.com/smartystreets/assertions"]
+	path = .gopath/src/github.com/smartystreets/assertions
+	url = https://github.com/smartystreets/assertions.git
