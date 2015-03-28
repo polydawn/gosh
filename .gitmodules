@@ -1,6 +1,3 @@
 [submodule ".gopath/src/github.com/coocood/assrt"]
 	path = .gopath/src/github.com/coocood/assrt
 	url = https://github.com/coocood/assrt
-[submodule ".gopath/src/github.com/kr/pty"]
-	path = .gopath/src/github.com/kr/pty
-	url = https://github.com/kr/pty.git
