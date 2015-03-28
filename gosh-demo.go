@@ -16,6 +16,7 @@ func main() {
 	aptget := Sh("apt-get")("install")
 	aptyes := aptget("-y")
 	// now `aptyes("git")` will install git and the `-y` argument means it will proceed automatically
+	_ = aptyes
 
 	// we'll do shorthand for a shell, so we can use the shell's echo for the rest of the demo.
 	shell := Sh("bash")("-c")
