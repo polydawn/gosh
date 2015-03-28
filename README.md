@@ -43,3 +43,9 @@ Inspired by https://github.com/amoffat/sh/ and https://github.com/polydawn/josh/
 No warranty implied.  Do not place in closed boxes with cats.  May eat your homework.  *Is* probably web scale (but no one knows what that means).  Artisanally crafted with venom and scorn.  Coroutines included.
 
 
+
+## Building
+
+`./goad`
+
+
