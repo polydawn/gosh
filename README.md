@@ -13,16 +13,19 @@ Example:
 
 
 ```go
-        // basic commands
-        Sh("head")("--bytes=20", "/dev/zero")()
+// basic commands
+Sh("head")("--bytes=20", "/dev/zero")()
 
-        // making your own shorthand
-        aptget := Sh("apt-get")("install")
-        aptyes := aptget("-y")
-        // now `aptyes("git")` will install git and the `-y` argument means it will proceed automatically
+// making your own shorthand
+aptget := Sh("apt-get")("install")
+aptyes := aptget("-y")
+// now `aptyes("git")` will install git
+// the `-y` argument is baked in so apt will proceed automatically
 ```
 
 Gosh is meant to be usable as a bash or python replacement in rapid-iteration scripting, as well as heavy duty usage as a library in large applications.
+
+Gosh discovers applications on your system using the `$PATH` mechanism so comfortable and familiar from your usual shell.
 
 Any kind of collection can be used for input and output of strings and bytes -- buffers, strings, channels, readers, writers -- you name it, it'll fly.
 Simple applications set up their input and output, call the command, wait for return, and go about their business.
