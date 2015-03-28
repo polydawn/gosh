@@ -30,6 +30,7 @@ Gosh discovers applications on your system using the `$PATH` mechanism so comfor
 Any kind of collection can be used for input and output of strings and bytes -- buffers, strings, channels, readers, writers -- you name it, it'll fly.
 Simple applications set up their input and output, call the command, wait for return, and go about their business.
 Fancier applications that want to streaming parallel processing can drop in a channel and parallel the day away.
+Shell-like scripts get standard input and output wired up automatically without boilerplate.
 
 After every call, a new command object is returned.
 (Each command object is immutable.)
