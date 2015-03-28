@@ -141,11 +141,11 @@ func (cmdt *CommandTemplate) bakeDebug(cb ShDebugListener) *CommandTemplate {
 	return cmdt
 }
 
-/**
- * Starts execution of the command.  Returns a reference to a RunningCommand,
- * which can be used to track execution of the command, configure exit listeners,
- * etc.
- */
+/*
+	Starts execution of the command.  Returns a reference to a RunningCommand,
+	which can be used to track execution of the command, configure exit listeners,
+	etc.
+*/
 func (f Command) Start() *RunningCommand {
 	cmdt := f.expose()
 
@@ -195,20 +195,20 @@ func (f Command) Start() *RunningCommand {
 	return cmd
 }
 
-/**
- * Starts execution of the command, and waits until completion before returning.
- * If the command does not execute successfully, a panic of type FailureExitCode
- * will be emitted; use Opts.OkExit to configure what is considered success.
- *
- * The is exactly the behavior of a no-arg invokation on an Command, i.e.
- *   `Sh("echo")()`
- * and
- *   `Sh("echo").Run()`
- * are interchangable and behave identically.
- *
- * Use the Start() method instead if you need to run a task in the background, or
- * if you otherwise need greater control over execution.
- */
+/*
+	Starts execution of the command, and waits until completion before returning.
+	If the command does not execute successfully, a panic of type FailureExitCode
+	will be emitted; use Opts.OkExit to configure what is considered success.
+
+	The is exactly the behavior of a no-arg invokation on an Command, i.e.
+		`Sh("echo")()`
+	and
+		`Sh("echo").Run()`
+	are interchangable and behave identically.
+
+	Use the Start() method instead if you need to run a task in the background, or
+	if you otherwise need greater control over execution.
+*/
 func (f Command) Run() {
 	cmdt := f.expose()
 	cmd := f.Start()
@@ -222,26 +222,26 @@ func (f Command) Run() {
 	panic(FailureExitCode{cmdname: cmdt.Cmd, code: exitCode})
 }
 
-/**
- * Starts execution of the command, waits until completion, and then returns the
- * accumulated output of the command as a string.  As with Run(), a panic will be
- * emitted if the command does not execute successfully.
- *
- * This does not include output from stderr; use CombinedOutput() for that.
- *
- * This acts as BakeOpts() with a value set on the Out field; that is, it will
- * overrule any previously configured output, and also it has no effect on where
- * stderr will go.
- */
+/*
+	Starts execution of the command, waits until completion, and then returns the
+	accumulated output of the command as a string.  As with Run(), a panic will be
+	emitted if the command does not execute successfully.
+
+	This does not include output from stderr; use CombinedOutput() for that.
+
+	This acts as BakeOpts() with a value set on the Out field; that is, it will
+	overrule any previously configured output, and also it has no effect on where
+	stderr will go.
+*/
 func (f Command) Output() string {
 	var buf bytes.Buffer
 	f.BakeOpts(Opts{Out: &buf}).Run()
 	return buf.String()
 }
 
-/**
- * Same as Output(), but acts on both stdout and stderr.
- */
+/*
+	Same as Output(), but acts on both stdout and stderr.
+*/
 func (f Command) CombinedOutput() string {
 	var buf bytes.Buffer
 	f.BakeOpts(Opts{Out: &buf, Err: &buf}).Run()

@@ -4,9 +4,9 @@ import (
 	"fmt"
 )
 
-/**
- * Error encountered while trying to set up or start executing a command.
- */
+/*
+	Error encountered while trying to set up or start executing a command.
+*/
 type CommandStartError struct {
 	cause error
 }
@@ -19,10 +19,10 @@ func (err CommandStartError) Error() string {
 	return fmt.Sprintf("error starting command: %s", err.Cause())
 }
 
-/**
- * Error encountered while trying to wait for completion, or get information about
- * the exit status of a command.
- */
+/*
+	Error encountered while trying to wait for completion, or get information about
+	the exit status of a command.
+*/
 type CommandMonitorError struct {
 	cause error
 }

@@ -5,14 +5,14 @@ import (
 	"reflect"
 )
 
-/**
- * Error when Sh() or its family of functions is called with arguments of an unexpected
- * type.  Sh() functions only expect arguments of the public types declared in the
- * sh_modifiers.go file when setting up a command.
- *
- * This should mostly be a compile-time problem as long as you write your
- * script to not actually pass unchecked types of interface{} into Sh() commands.
- */
+/*
+	Error when Sh() or its family of functions is called with arguments of an unexpected
+	type.  Sh() functions only expect arguments of the public types declared in the
+	sh_modifiers.go file when setting up a command.
+
+	This should mostly be a compile-time problem as long as you write your
+	script to not actually pass unchecked types of interface{} into Sh() commands.
+*/
 type IncomprehensibleCommandModifier struct {
 	wat *interface{}
 }
@@ -34,12 +34,12 @@ func whoru(val reflect.Value) string {
 	}
 }
 
-/**
- * Error for commands run by Sh that exited with a non-successful status.
- *
- * What exactly qualifies as an unsuccessful status can be defined per command,
- * but by default is any exit code other than zero.
- */
+/*
+	Error for commands run by Sh that exited with a non-successful status.
+
+	What exactly qualifies as an unsuccessful status can be defined per command,
+	but by default is any exit code other than zero.
+*/
 type FailureExitCode struct {
 	cmdname string
 	code    int
