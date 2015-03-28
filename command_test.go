@@ -208,6 +208,10 @@ func TestGoshDoesNotReportNondeadlySignalsAsExit(t *testing.T) {
 }
 
 func TestGoshDoesNotReportSigStopOrContinueAsExit(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+
 	assert := assrt.NewAssert(t)
 
 	cmdr := NewRunningCommand(
@@ -239,6 +243,10 @@ func TestGoshDoesNotReportSigStopOrContinueAsExit(t *testing.T) {
 }
 
 func TestGoshDoesNotReportSigStopOrContinueAsExitEvenUnderPtrace(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+
 	assert := assrt.NewAssert(t)
 
 	cmdr := NewRunningCommand(
