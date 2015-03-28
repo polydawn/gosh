@@ -6,6 +6,37 @@ import (
 )
 
 /*
+	Error encountered while trying to set up or start executing a command.
+*/
+type ProcStartError struct {
+	cause error
+}
+
+func (err ProcStartError) Cause() error {
+	return err.cause
+}
+
+func (err ProcStartError) Error() string {
+	return fmt.Sprintf("error starting proc: %s", err.Cause())
+}
+
+/*
+	Error encountered while trying to wait for completion, or get information about
+	the exit status of a command.
+*/
+type ProcMonitorError struct {
+	cause error
+}
+
+func (err ProcMonitorError) Cause() error {
+	return err.cause
+}
+
+func (err ProcMonitorError) Error() string {
+	return fmt.Sprintf("error monitoring proc: %s", err.Cause())
+}
+
+/*
 	Error when Sh() or its family of functions is called with arguments of an unexpected
 	type.  Sh() functions only expect arguments of the public types declared in the
 	sh_modifiers.go file when setting up a command.
