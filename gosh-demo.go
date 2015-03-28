@@ -2,7 +2,8 @@ package main
 
 import (
 	"os"
-	. "polydawn.net/pogo/gosh"
+
+	. "github.com/polydawn/gosh/gosh"
 )
 
 func main() {

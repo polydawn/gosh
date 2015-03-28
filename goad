@@ -11,8 +11,8 @@ export BASEDIR="$PWD"
 [ -z "$2" ] && SUBSECTION="./..." || SUBSECTION="./$2"
 
 # Project details
-name="pogo"
-pkg="polydawn.net/$name"
+name="gosh"
+pkg="github.com/polydawn/$name"
 
 
 
