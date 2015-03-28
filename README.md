@@ -1,4 +1,4 @@
-# gosh [![Build Status](https://travis-ci.org/polydawn/gosh.svg)](https://travis-ci.org/polydawn/gosh) [![Doc Status](https://godoc.org/github.com/polydawn/gosh?status.png)](https://godoc.org/github.com/polydawn/gosh)
+# gosh [![Build Status](https://travis-ci.org/polydawn/gosh.svg)](https://travis-ci.org/polydawn/gosh/builds) [![Doc Status](https://godoc.org/github.com/polydawn/gosh?status.png)](https://godoc.org/github.com/polydawn/gosh)
 
 ---
 
