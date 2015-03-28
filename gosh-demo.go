@@ -1,8 +1,7 @@
-package main
+package gosh
 
 import (
 	"os"
-	. "polydawn.net/pogo/gosh"
 )
 
 func main() {

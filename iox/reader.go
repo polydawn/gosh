@@ -151,7 +151,7 @@ func ReaderFromChanByteSlice(ch chan []byte) io.Reader {
 }
 
 type readerChanByteSlice struct {
-	ch chan []byte
+	ch  chan []byte
 	buf []byte
 }
 

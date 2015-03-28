@@ -186,7 +186,7 @@ func TestIntegration_NotATty(t *testing.T) {
 
 	assert.Equal(
 		"not a tty\n",
-		<- out,
+		<-out,
 	)
 	assert.Equal(
 		1,

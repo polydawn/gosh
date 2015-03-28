@@ -20,7 +20,7 @@ import (
 
 /*
 	Error raised by WriterFromInterface() when is called with an argument of an unexpected type.
- */
+*/
 type WriterUnrefinableFromInterface struct {
 	wat interface{}
 }

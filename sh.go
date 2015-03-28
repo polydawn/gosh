@@ -18,7 +18,8 @@ import (
 	"bytes"
 	"fmt"
 	"os/exec"
-	"polydawn.net/pogo/iox"
+
+	"github.com/polydawn/gosh/iox"
 )
 
 func Sh(cmd string) Command {

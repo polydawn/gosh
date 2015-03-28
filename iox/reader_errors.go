@@ -20,7 +20,7 @@ import (
 
 /*
 	Error raised by ReaderFromInterface() when is called with an argument of an unexpected type.
- */
+*/
 type ReaderUnrefinableFromInterface struct {
 	wat interface{}
 }

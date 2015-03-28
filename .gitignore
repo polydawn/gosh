@@ -1,6 +1,3 @@
-
-# ignore any local compiled go packages
+/.gopath/bin/
 /.gopath/pkg/
-
-# ignore any test log files
-/test*.log
+/.gopath/tmp/

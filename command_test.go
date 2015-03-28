@@ -224,7 +224,6 @@ func TestGoshDoesNotReportNondeadlySignalsAsExit(t *testing.T) {
 func TestGoshDoesNotReportSigStopOrContinueAsExit(t *testing.T) {
 	assert := assrt.NewAssert(t)
 
-	
 	cmdr := NewRunningCommand(
 		exec.Command("bash", "-c", "sleep 1; exit 4;"),
 	)
@@ -234,7 +233,7 @@ func TestGoshDoesNotReportSigStopOrContinueAsExit(t *testing.T) {
 	// the command shouldn't be able to return while stopped, regardless of how short the sleep call is.
 	assert.Equal(
 		false,
-		cmdr.WaitSoon(1500 * time.Millisecond),
+		cmdr.WaitSoon(1500*time.Millisecond),
 	)
 
 	NewRunningCommand(exec.Command("kill", "-SIGCONT", Itoa(cmdr.Pid()))).Start().Wait()
@@ -270,7 +269,7 @@ func TestGoshDoesNotReportSigStopOrContinueAsExitEvenUnderPtrace(t *testing.T) {
 
 	assert.Equal(
 		false,
-		cmdr.WaitSoon(1500 * time.Millisecond),
+		cmdr.WaitSoon(1500*time.Millisecond),
 	)
 
 	NewRunningCommand(exec.Command("kill", "-SIGCONT", Itoa(cmdr.Pid()))).Start().Wait()
