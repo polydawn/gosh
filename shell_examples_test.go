@@ -98,3 +98,11 @@ func ExampleBakingAShell() {
 	// some_var=59
 	// some_var=
 }
+
+func ExampleEasyInput() {
+	cat := Gosh("cat", "-")
+	cat(Opts{In: "piping in things is easy!"})
+
+	// Output:
+	// piping in things is easy!
+}
