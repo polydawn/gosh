@@ -20,6 +20,8 @@ func (err ProcStartError) Error() string {
 	return fmt.Sprintf("error starting proc: %s", err.Cause())
 }
 
+var NoArgumentsErr = fmt.Errorf("no arguments specified")
+
 /*
 	Error encountered while trying to wait for completion, or get information about
 	the exit status of a command.

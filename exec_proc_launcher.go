@@ -8,8 +8,9 @@ import (
 )
 
 var ExecLauncher Launcher = func(cmdt CommandTemplate) Proc {
-	// FIXME range check
-	// FIXME notfound handling
+	if cmdt.Args == nil || len(cmdt.Args) < 1 {
+		panic(ProcStartError{cause: NoArgumentsErr})
+	}
 	cmd := exec.Command(cmdt.Args[0], cmdt.Args[1:]...)
 
 	// set up env
