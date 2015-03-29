@@ -46,9 +46,42 @@ type CommandTemplate struct {
 }
 
 // Apply 'y' to 'x', returning a new structure.  'y' trumps.
-func (x CommandTemplate) Fold(y CommandTemplate) CommandTemplate {
+func (x CommandTemplate) Merge(y CommandTemplate) CommandTemplate {
 	x.Args = joinStringSlice(x.Args, y.Args)
+	x.Env = x.Env.Merge(y.Env)
+	if y.Cwd != "" {
+		x.Cwd = y.Cwd
+	}
+	if y.In != nil {
+		x.In = y.In
+	}
+	if y.Out != nil {
+		x.Out = y.Out
+	}
+	if y.Err != nil {
+		x.Err = y.Err
+	}
+	if y.OkExit != nil {
+		x.OkExit = y.OkExit
+	}
 	return x
 }
 
 type Env map[string]string
+
+type ClearEnv struct{}
+
+func (x Env) Merge(y Env) Env {
+	z := make(map[string]string, len(x)+len(y))
+	for k, v := range x {
+		z[k] = v
+	}
+	for k, v := range y {
+		if v == "" {
+			delete(z, k)
+		} else {
+			z[k] = v
+		}
+	}
+	return z
+}
