@@ -5,11 +5,14 @@ import (
 	"strings"
 )
 
-/*
-	Why the golang stdlib doesn't already expose environ as a map from
-	string to string -- because that's WHAT IT IS -- is so far beyond my
-	understanding...
-*/
+func joinStringSlice(x, y []string) []string {
+	w := len(x)
+	z := make([]string, w+len(y))
+	copy(z, x)
+	copy(z[w:], y)
+	return z
+}
+
 func getOsEnv() map[string]string {
 	env := make(map[string]string)
 	for _, line := range os.Environ() {
