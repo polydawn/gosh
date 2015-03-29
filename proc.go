@@ -4,6 +4,8 @@ import (
 	"time"
 )
 
+type Launcher func(CommandTemplate) Proc
+
 /*
 	Proc observes and manipulates a running command.
 

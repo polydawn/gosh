@@ -104,3 +104,13 @@ func (x Env) Merge(y Env) Env {
 	}
 	return z
 }
+
+func (x Env) ToSlice() []string {
+	z := make([]string, len(x))
+	i := 0
+	for k, v := range x {
+		z[i] = k + "=" + v
+		i++
+	}
+	return z
+}
