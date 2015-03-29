@@ -2,20 +2,19 @@ package gosh_test
 
 import (
 	"fmt"
-	"os"
 
 	. "github.com/polydawn/gosh"
 )
 
 func ExampleNormalFlow() {
-	Gosh("echo", "hello world!", Opts{Out: os.Stdout}).Run()
+	Sh("echo", "hello world!")
 
 	// Output:
 	// hello world!
 }
 
 func ExampleStartCollectFlow() {
-	proc := Gosh("echo", "hello world!", Opts{Out: os.Stdout}).Start()
+	proc := Gosh("echo", "hello world!").Start()
 	proc.Wait()
 
 	// Output:

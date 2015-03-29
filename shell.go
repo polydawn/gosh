@@ -6,6 +6,16 @@ import (
 )
 
 /*
+	Creates a new Command and immediately invokes it, returning when
+	the process is complete.
+
+	This is shorthand for `Gosh(args).Run()`.
+*/
+func Sh(args ...interface{}) Proc {
+	return Gosh(args...).Run()
+}
+
+/*
 	Creates a new Command with the defaults for shell-like behavior.
 */
 func Gosh(args ...interface{}) Command {
