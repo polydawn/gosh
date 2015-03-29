@@ -7,7 +7,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestShell(t *testing.T) {
+func TestMergineCommandTemplates(t *testing.T) {
 	Convey("Merging command templates", t, func() {
 		one := CommandTemplate{
 			Args: []string{"one"},

@@ -1,14 +1,40 @@
 package gosh
 
-func Gosh(args ...string) Command {
+func Gosh(args ...interface{}) Command {
 	var cmdt CommandTemplate
-	cmdt.Args = args
 	cmdt.Env = getOsEnv()
 	cmdt.OkExit = []int{0}
-	return wrap(cmdt)
+	return enclose(bake(cmdt, args...))
 }
 
-type Command func(args ...interface{}) Command
+/*
+	Calling a `Command` merges in the arguments and then
+	immediately launches a `Proc`.  The `Command()` call waits for the `Proc`
+	to complete, panics if it fails, and finally returns the `Proc`.
+
+	Use `Command.Start()` to just launch and immediately return the `Proc`
+	if you want to do your own job control.
+*/
+type Command func(args ...interface{}) Proc
+
+/*
+	Using `Bake` on a `Command` merges in the arguments, keeping them
+	as a template that applies to every Proc launched from the new `Command`
+	that's returned.
+
+	The returned command can launch `Proc`s repeatedly or futher baked, just
+	like the original.
+
+	The returned command is a "deep copy" for everything except the In/Out/Err
+	readers/writers -- it's completely separated; further changes do not have
+	the power to mutate the original.
+	(Except when the In/Out/Err references are themselves stateful;
+	we have no way to deepcopy on those without knowing what their
+	implementations are).
+*/
+func (c Command) Bake(args ...interface{}) Command {
+	return enclose(bake(c.expose(), args...))
+}
 
 type CommandTemplate struct {
 	Args []string
@@ -75,15 +101,49 @@ func (x CommandTemplate) Merge(y CommandTemplate) CommandTemplate {
 	return x
 }
 
-func wrap(cmdt CommandTemplate) Command {
-	return func(args ...interface{}) Command {
-		return bake(cmdt, args)
+type magic struct{ cmdt CommandTemplate }
+
+func enclose(cmdt CommandTemplate) Command {
+	return func(args ...interface{}) Proc {
+		if len(args) == 0 {
+			p := ExecLauncher(cmdt) // FIXME hardcoded BS
+			p.Wait()
+			return p
+		}
+		switch magic := args[0].(type) {
+		case *magic:
+			magic.cmdt = cmdt
+			return nil
+		default:
+			return ExecLauncher(bake(cmdt, args...)) // FIXME hardcoded BS
+		}
 	}
 }
 
-func bake(cmdt CommandTemplate, args ...interface{}) Command {
-	// TODO fill with stars
-	return wrap(cmdt)
+func (c Command) expose() CommandTemplate {
+	m := &magic{}
+	c(m)
+	return m.cmdt
+}
+
+func bake(cmdt CommandTemplate, args ...interface{}) CommandTemplate {
+	for _, arg := range args {
+		switch arg := arg.(type) {
+		case CommandTemplate:
+			cmdt = cmdt.Merge(arg)
+		case Env:
+			cmdt = cmdt.Merge(CommandTemplate{Env: arg})
+		case ClearEnv:
+			cmdt.Env = nil
+		case string:
+			cmdt = cmdt.Merge(CommandTemplate{Args: []string{arg}})
+		case []string:
+			cmdt = cmdt.Merge(CommandTemplate{Args: arg})
+		default:
+			panic(IncomprehensibleCommandModifier{wat: &arg})
+		}
+	}
+	return cmdt
 }
 
 type Env map[string]string
