@@ -2,6 +2,7 @@ package gosh
 
 func Gosh(args ...interface{}) Command {
 	var cmdt CommandTemplate
+	cmdt.Launcher = ExecLauncher
 	cmdt.Env = getOsEnv()
 	cmdt.OkExit = []int{0}
 	return enclose(bake(cmdt, args...))
@@ -77,6 +78,14 @@ type CommandTemplate struct {
 		(If this slice is provided, zero will -not- be considered a success code unless explicitly included.)
 	*/
 	OkExit []int
+
+	/*
+		The `Launcher` to use when spawning a process from this template.
+
+		You can replace this with your own function in order to do last minute
+		tweaks or logging!
+	*/
+	Launcher Launcher
 }
 
 // Apply 'y' to 'x', returning a new structure.  'y' trumps.
@@ -98,6 +107,9 @@ func (x CommandTemplate) Merge(y CommandTemplate) CommandTemplate {
 	if y.OkExit != nil {
 		x.OkExit = y.OkExit
 	}
+	if y.Launcher != nil {
+		x.Launcher = y.Launcher
+	}
 	return x
 }
 
@@ -106,7 +118,7 @@ type magic struct{ cmdt CommandTemplate }
 func enclose(cmdt CommandTemplate) Command {
 	return func(args ...interface{}) Proc {
 		if len(args) == 0 {
-			p := ExecLauncher(cmdt) // FIXME hardcoded BS
+			p := cmdt.Launcher(cmdt)
 			p.Wait()
 			return p
 		}
@@ -115,7 +127,7 @@ func enclose(cmdt CommandTemplate) Command {
 			magic.cmdt = cmdt
 			return nil
 		default:
-			return ExecLauncher(bake(cmdt, args...)) // FIXME hardcoded BS
+			return cmdt.Launcher(bake(cmdt, args...))
 		}
 	}
 }
