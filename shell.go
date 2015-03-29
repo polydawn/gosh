@@ -222,7 +222,7 @@ func (cmdt Opts) run() Proc {
 			return p
 		}
 	}
-	panic(FailureExitCode{cmdname: cmdt.Args[0], code: exitCode})
+	panic(FailureExitCode{Cmdname: cmdt.Args[0], Code: exitCode})
 }
 
 type magic struct{ cmdt Opts }

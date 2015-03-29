@@ -74,10 +74,10 @@ func whoru(val reflect.Value) string {
 	but by default is any exit code other than zero.
 */
 type FailureExitCode struct {
-	cmdname string
-	code    int
+	Cmdname string
+	Code    int
 }
 
 func (err FailureExitCode) Error() string {
-	return fmt.Sprintf("gosh: command \"%s\" exited with unexpected status %d", err.cmdname, err.code)
+	return fmt.Sprintf("gosh: command \"%s\" exited with unexpected status %d", err.Cmdname, err.Code)
 }
