@@ -54,3 +54,31 @@ func ExampleOkExit() {
 
 	// Output:
 }
+
+func ExamplePipeline() {
+	// make sure the pipeline is big enough.. or use the next example
+	pipe := make(chan string, 3)
+	Sh("echo", "3\n1\n2", Opts{Out: pipe})
+	close(pipe)
+	Sh("sort", Opts{In: pipe})
+
+	// Output:
+	// 1
+	// 2
+	// 3
+}
+
+func ExamplePipelineBetter() {
+	// start both tasks before waiting; this means the pipeline never chokes
+	pipe := make(chan string)
+	job1 := Gosh("echo", "3\n1\n2", Opts{Out: pipe}).Start()
+	job2 := Gosh("sort", Opts{In: pipe}).Start()
+	job1.Wait()
+	close(pipe)
+	job2.Wait()
+
+	// Output:
+	// 1
+	// 2
+	// 3
+}
