@@ -27,3 +27,15 @@ var NullIO = Opts{
 	Out: nil,
 	Err: nil,
 }
+
+/*
+	Bake this in to make `Run()` accept any exit code.
+*/
+var AnyExit []int = make([]int, 256)
+
+func init() {
+	// This is kinda gross, but 'nil' in `Opts.OkExit` means "don't update", so.
+	for i := 0; i <= 255; i++ {
+		AnyExit[i] = i
+	}
+}
