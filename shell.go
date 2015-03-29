@@ -1,5 +1,13 @@
 package gosh
 
+func Gosh(args ...string) Command {
+	var cmdt CommandTemplate
+	cmdt.Args = args
+	cmdt.Env = getOsEnv()
+	cmdt.OkExit = []int{0}
+	return wrap(cmdt)
+}
+
 type Command func(args ...interface{}) Command
 
 type CommandTemplate struct {
@@ -65,6 +73,17 @@ func (x CommandTemplate) Merge(y CommandTemplate) CommandTemplate {
 		x.OkExit = y.OkExit
 	}
 	return x
+}
+
+func wrap(cmdt CommandTemplate) Command {
+	return func(args ...interface{}) Command {
+		return bake(cmdt, args)
+	}
+}
+
+func bake(cmdt CommandTemplate, args ...interface{}) Command {
+	// TODO fill with stars
+	return wrap(cmdt)
 }
 
 type Env map[string]string
