@@ -1,13 +1,22 @@
 package gosh
 
-import "bytes"
+import (
+	"bytes"
+	"os"
+)
 
+/*
+	Creates a new Command with the defaults for shell-like behavior.
+*/
 func Gosh(args ...interface{}) Command {
-	var cmdt Opts
-	cmdt.Launcher = ExecLauncher
-	cmdt.Env = getOsEnv()
-	cmdt.OkExit = []int{0}
-	return enclose(bake(cmdt, args...))
+	return enclose(bake(Opts{
+		Launcher: ExecLauncher,
+		Env:      getOsEnv(),
+		In:       os.Stdin,
+		Out:      os.Stdout,
+		Err:      os.Stderr,
+		OkExit:   []int{0},
+	}, args...))
 }
 
 /*
