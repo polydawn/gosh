@@ -28,3 +28,29 @@ func ExampleCollectOutput() {
 	// Output:
 	// hello world!
 }
+
+func ExampleEnvVars() {
+	str := Gosh(ClearEnv{}, Env{"key": "val"}, "env").Output()
+	fmt.Println(str)
+
+	// Output:
+	// key=val
+}
+
+func ExampleErrorExit() {
+	defer func() {
+		err := recover()
+		fmt.Println("code", err.(FailureExitCode).Code)
+	}()
+	Sh("bash", "-c", "exit 22")
+
+	// Output:
+	// code 22
+}
+
+func ExampleOkExit() {
+	Sh("bash", "-c", "exit 22", Opts{OkExit: AnyExit})
+	// (no output; point is just that it doesn't panic)
+
+	// Output:
+}
