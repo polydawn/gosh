@@ -7,7 +7,7 @@ import (
 	"github.com/polydawn/gosh/iox"
 )
 
-var ExecLauncher Launcher = func(cmdt CommandTemplate) Proc {
+var ExecLauncher Launcher = func(cmdt Opts) Proc {
 	if cmdt.Args == nil || len(cmdt.Args) < 1 {
 		panic(ProcStartError{cause: NoArgumentsErr})
 	}

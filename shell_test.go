@@ -7,15 +7,15 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestMergineCommandTemplates(t *testing.T) {
+func TestMergineOptss(t *testing.T) {
 	Convey("Merging command templates", t, func() {
-		one := CommandTemplate{
+		one := Opts{
 			Args: []string{"one"},
 			Env: Env{
 				"one": "one",
 			},
 		}
-		two := CommandTemplate{
+		two := Opts{
 			Args: []string{"two"},
 			Env: Env{
 				"two": "two",
@@ -42,7 +42,7 @@ func TestMergineCommandTemplates(t *testing.T) {
 
 func TestExecIntegration(t *testing.T) {
 	Convey("Given a command template", t, func() {
-		cmd := CommandTemplate{
+		cmd := Opts{
 			Args: []string{"true"},
 		}
 
@@ -57,7 +57,7 @@ func TestExecIntegration(t *testing.T) {
 
 	Convey("Given a command template with outputs", t, func() {
 		var buf bytes.Buffer
-		cmd := CommandTemplate{
+		cmd := Opts{
 			Args: []string{"echo", "msg"},
 			Out:  &buf,
 		}

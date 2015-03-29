@@ -1,7 +1,7 @@
 package gosh
 
 func Gosh(args ...interface{}) Command {
-	var cmdt CommandTemplate
+	var cmdt Opts
 	cmdt.Launcher = ExecLauncher
 	cmdt.Env = getOsEnv()
 	cmdt.OkExit = []int{0}
@@ -37,7 +37,7 @@ func (c Command) Bake(args ...interface{}) Command {
 	return enclose(bake(c.expose(), args...))
 }
 
-type CommandTemplate struct {
+type Opts struct {
 	Args []string
 
 	Env Env
@@ -89,7 +89,7 @@ type CommandTemplate struct {
 }
 
 // Apply 'y' to 'x', returning a new structure.  'y' trumps.
-func (x CommandTemplate) Merge(y CommandTemplate) CommandTemplate {
+func (x Opts) Merge(y Opts) Opts {
 	x.Args = joinStringSlice(x.Args, y.Args)
 	x.Env = x.Env.Merge(y.Env)
 	if y.Cwd != "" {
@@ -113,9 +113,9 @@ func (x CommandTemplate) Merge(y CommandTemplate) CommandTemplate {
 	return x
 }
 
-type magic struct{ cmdt CommandTemplate }
+type magic struct{ cmdt Opts }
 
-func enclose(cmdt CommandTemplate) Command {
+func enclose(cmdt Opts) Command {
 	return func(args ...interface{}) Proc {
 		if len(args) == 0 {
 			p := cmdt.Launcher(cmdt)
@@ -132,25 +132,25 @@ func enclose(cmdt CommandTemplate) Command {
 	}
 }
 
-func (c Command) expose() CommandTemplate {
+func (c Command) expose() Opts {
 	m := &magic{}
 	c(m)
 	return m.cmdt
 }
 
-func bake(cmdt CommandTemplate, args ...interface{}) CommandTemplate {
+func bake(cmdt Opts, args ...interface{}) Opts {
 	for _, arg := range args {
 		switch arg := arg.(type) {
-		case CommandTemplate:
+		case Opts:
 			cmdt = cmdt.Merge(arg)
 		case Env:
-			cmdt = cmdt.Merge(CommandTemplate{Env: arg})
+			cmdt = cmdt.Merge(Opts{Env: arg})
 		case ClearEnv:
 			cmdt.Env = nil
 		case string:
-			cmdt = cmdt.Merge(CommandTemplate{Args: []string{arg}})
+			cmdt = cmdt.Merge(Opts{Args: []string{arg}})
 		case []string:
-			cmdt = cmdt.Merge(CommandTemplate{Args: arg})
+			cmdt = cmdt.Merge(Opts{Args: arg})
 		default:
 			panic(IncomprehensibleCommandModifier{wat: &arg})
 		}

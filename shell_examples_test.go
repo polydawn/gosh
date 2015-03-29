@@ -7,7 +7,7 @@ import (
 )
 
 func ExampleNormalFlow() {
-	cmd := Gosh("echo", "hello world!", CommandTemplate{Out: os.Stdout})
+	cmd := Gosh("echo", "hello world!", Opts{Out: os.Stdout})
 	cmd()
 
 	// Output:
