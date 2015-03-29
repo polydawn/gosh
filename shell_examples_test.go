@@ -82,3 +82,19 @@ func ExamplePipelineBetter() {
 	// 2
 	// 3
 }
+
+func ExampleBakingAShell() {
+	shell := Gosh("bash", "-c")
+	shell("echo 'this is a shell eval'")
+	shell(Env{"SOME_VAR": "59"}, "echo some_var=$SOME_VAR") // you can easily set an env var for just this command.
+	shell("echo some_var=$SOME_VAR")                        // it doesn't last; this launches a new shell process.
+	shellWithVar := shell.Bake(Env{"VAR": "59"})            // unless you want to bake it in; then sure!
+	shellWithVar("exit $VAR", Opts{OkExit: []int{59}})
+	silentShell := shell.Bake(NullIO) // from now on it's silenced!
+	silentShell("echo 'nobody can hear me!'")
+
+	// Output:
+	// this is a shell eval
+	// some_var=59
+	// some_var=
+}

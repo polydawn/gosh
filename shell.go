@@ -238,7 +238,7 @@ func enclose(cmdt Opts) Command {
 			magic.cmdt = cmdt
 			return nil
 		default:
-			return bake(cmdt, args...).start()
+			return bake(cmdt, args...).run()
 		}
 	}
 }

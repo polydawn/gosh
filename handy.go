@@ -1,6 +1,8 @@
 package gosh
 
 import (
+	"bytes"
+	"io/ioutil"
 	"os"
 )
 
@@ -23,9 +25,9 @@ var DefaultIO = Opts{
 	and disconnect the input stream.
 */
 var NullIO = Opts{
-	In:  nil,
-	Out: nil,
-	Err: nil,
+	In:  bytes.Buffer{},
+	Out: ioutil.Discard,
+	Err: ioutil.Discard,
 }
 
 /*
