@@ -108,6 +108,37 @@ func (c Command) Start() Proc {
 }
 
 /*
+	Like `Run()`, but overrides stdout and stderr to be collected and reported
+	along with the error that is raised if the process ends with a non-zero exit status.
+
+	The conmingled stdout+stderr will be in the `FailureExitCode.Message`
+	field.
+
+	This is often a useful helper method for the behavior an application wants
+	from a non-interactive background task (e.g. "untar; if it succeeds, I already
+	understand what that means; tell me the output if and only if it fails").
+
+	Note that this implies that stdout and stderr of the process will be
+	buffered by gosh in memory.  If your process may produce large amounts of
+	output, this helper method may not be appropriate for your use case.
+*/
+func (c Command) RunAndReport() Proc {
+	var buf bytes.Buffer
+	cmdt := c.expose()
+	cmdt.Out = &buf
+	cmdt.Err = &buf
+	p := cmdt.start()
+	p.Wait()
+	exitCode := p.GetExitCode()
+	for _, okcode := range cmdt.OkExit {
+		if exitCode == okcode {
+			return p
+		}
+	}
+	panic(FailureExitCode{Cmdname: cmdt.Args[0], Code: exitCode, Message: buf.String()})
+}
+
+/*
 	Starts execution of the command, waits until completion, and then returns the
 	accumulated output of the command as a string.  As with `Run()`, a panic will be
 	emitted if the command does not execute successfully.

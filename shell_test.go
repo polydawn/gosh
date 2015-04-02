@@ -40,6 +40,33 @@ func TestMergineOptss(t *testing.T) {
 	})
 }
 
+func TestInvocationBehaviors(t *testing.T) {
+	// still presumes exec as the backing invoker, regretably
+	Convey("Given a command that will succeed", t, func() {
+		cmd := Opts{
+			Args: []string{"echo", "success"},
+		}
+		Convey("RunAndReport should have no comment", func() {
+			Gosh(cmd).RunAndReport()
+		})
+	})
+	Convey("Given a command that will exit with 12", t, func() {
+		cmd := Opts{
+			Args: []string{"bash", "-c", "echo failuremessage 1>&2; exit 12"},
+		}
+		Convey("RunAndReport should panic; error should include output", func() {
+			defer func() {
+				err := recover()
+				So(err, ShouldNotBeNil)
+				So(err, ShouldHaveSameTypeAs, FailureExitCode{})
+				errExit := err.(FailureExitCode)
+				So(errExit.Message, ShouldEqual, "failuremessage\n")
+			}()
+			Gosh(cmd).RunAndReport()
+		})
+	})
+}
+
 func TestExecIntegration(t *testing.T) {
 	Convey("Given a command template", t, func() {
 		cmd := Opts{

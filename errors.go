@@ -3,6 +3,7 @@ package gosh
 import (
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 /*
@@ -76,8 +77,13 @@ func whoru(val reflect.Value) string {
 type FailureExitCode struct {
 	Cmdname string
 	Code    int
+	Message string
 }
 
 func (err FailureExitCode) Error() string {
-	return fmt.Sprintf("gosh: command \"%s\" exited with unexpected status %d", err.Cmdname, err.Code)
+	msg := ""
+	if err.Message != "" {
+		msg = "\n\tCommand output was:\n\t\t\"\"\"\n\t\t" + strings.Replace(err.Message, "\n", "\n\t\t", -1) + "\n\t\t\"\"\""
+	}
+	return fmt.Sprintf("gosh: command \"%s\" exited with unexpected status %d%s", err.Cmdname, err.Code, msg)
 }
