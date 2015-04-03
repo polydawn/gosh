@@ -65,6 +65,15 @@ func TestInvocationBehaviors(t *testing.T) {
 			Gosh(cmd).RunAndReport()
 		})
 	})
+	Convey("Given a command that will exit with 0", t, func() {
+		cmd := Opts{
+			Args: []string{"bash", "-c", "echo lol; echo failuremessage 1>&2"},
+		}
+		Convey("RunAndReport should have output", func() {
+			_, output := Gosh(cmd).RunAndReport()
+			So(output, ShouldResemble, "lol\nfailuremessage\n")
+		})
+	})
 }
 
 func TestExecIntegration(t *testing.T) {

@@ -116,13 +116,15 @@ func (c Command) Start() Proc {
 
 	This is often a useful helper method for the behavior an application wants
 	from a non-interactive background task (e.g. "untar; if it succeeds, I already
-	understand what that means; tell me the output if and only if it fails").
+	understand what that means; tell me the output if and only if it fails" or
+	"git command results to exit codes are not 1:1 and include exit 0; let me
+	manage it").
 
 	Note that this implies that stdout and stderr of the process will be
 	buffered by gosh in memory.  If your process may produce large amounts of
 	output, this helper method may not be appropriate for your use case.
 */
-func (c Command) RunAndReport() Proc {
+func (c Command) RunAndReport() (Proc, string) {
 	var buf bytes.Buffer
 	cmdt := c.expose()
 	cmdt.Out = &buf
@@ -132,7 +134,7 @@ func (c Command) RunAndReport() Proc {
 	exitCode := p.GetExitCode()
 	for _, okcode := range cmdt.OkExit {
 		if exitCode == okcode {
-			return p
+			return p, buf.String()
 		}
 	}
 	panic(FailureExitCode{Cmdname: cmdt.Args[0], Code: exitCode, Message: buf.String()})
