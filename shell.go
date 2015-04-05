@@ -294,7 +294,7 @@ func bake(cmdt Opts, args ...interface{}) Opts {
 		case []string:
 			cmdt = cmdt.Merge(Opts{Args: arg})
 		default:
-			panic(IncomprehensibleCommandModifier{wat: &arg})
+			panic(IncomprehensibleCommandModifierError{wat: &arg})
 		}
 	}
 	return cmdt

@@ -135,7 +135,7 @@ func (p *ExecProc) start() error {
 
 	atomic.StoreInt32(&p.state, int32(RUNNING))
 	if err := p.cmd.Start(); err != nil {
-		p.transitionFinal(ProcStartError{cause: err})
+		p.transitionFinal(ProcMonitorError{Cause: err})
 		return p.err
 	}
 
