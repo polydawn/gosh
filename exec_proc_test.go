@@ -92,7 +92,14 @@ func TestProcExec(t *testing.T) {
 			So(p.GetExitCode(), ShouldEqual, 137)
 			So(p.State(), ShouldEqual, FINISHED)
 		})
-		Convey("Nondeadly signals should not be reported as exit codes", FailureContinues, func() {
+		conveyFast := func(x ...interface{}) {
+			if testing.Short() {
+				SkipConvey(x...)
+			} else {
+				Convey(x...)
+			}
+		}
+		conveyFast("Nondeadly signals should not be reported as exit codes", FailureContinues, func() {
 			cmd := nilifyFDs(exec.Command("bash", "-c",
 				// this bash script does not die when it recieves a SIGINT; it catches it and exits orderly (with a different code).
 				"function catch_sig () { exit 22; }; trap catch_sig 2; { sleep 2 & } ; wait ; exit 88;",
@@ -102,23 +109,25 @@ func TestProcExec(t *testing.T) {
 
 			// Wait a moment to give the bash time to set up its trap.
 			// Then spring the trap.
+			// SLOW: it would be better if the shell could tell us when it's ready
 			time.Sleep(100 * time.Millisecond)
 			ExecProcCmd(nilifyFDs(exec.Command("kill", "-2", strconv.Itoa(p.Pid())))).Wait()
 
 			So(p.GetExitCode(), ShouldEqual, 22)
 			So(p.State(), ShouldEqual, FINISHED)
 		})
-		Convey("Stop/Cont signals should not be reported as exit codes", FailureContinues, func() {
+		conveyFast("Stop/Cont signals should not be reported as exit codes", FailureContinues, func() {
 			cmd := nilifyFDs(exec.Command("bash", "-c", "sleep 1; exit 4;"))
 			p := ExecProcCmd(cmd)
 
 			ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGSTOP", strconv.Itoa(p.Pid())))).Wait()
 			ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGCONT", strconv.Itoa(p.Pid())))).Wait()
 
+			// SLOW: this waits for the entire `sleep` process
 			So(p.GetExitCode(), ShouldEqual, 4)
 			So(p.State(), ShouldEqual, FINISHED)
 		})
-		Convey("Stop/Cont signals should not be reported as exit codes, even under ptrace", FailureContinues, func() {
+		conveyFast("Stop/Cont signals should not be reported as exit codes, even under ptrace", FailureContinues, func() {
 			// This exercises that really bizzare 'else' case in `waitTry` and
 			// that whole retry loop around it.
 			cmd := nilifyFDs(exec.Command("bash", "-c", "sleep 1; exit 4;"))
@@ -130,6 +139,7 @@ func TestProcExec(t *testing.T) {
 			ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGCONT", strconv.Itoa(p.Pid())))).Wait()
 			So(syscall.PtraceDetach(p.Pid()), ShouldBeNil)
 
+			// SLOW: this waits for the entire `sleep` process
 			So(p.GetExitCode(), ShouldEqual, 4)
 			So(p.State(), ShouldEqual, FINISHED)
 		})
