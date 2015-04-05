@@ -2,6 +2,7 @@ package gosh
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"sync"
 	"sync/atomic"
@@ -135,12 +136,36 @@ func (p *ExecProc) start() error {
 
 	atomic.StoreInt32(&p.state, int32(RUNNING))
 	if err := p.cmd.Start(); err != nil {
-		if err2, ok := err.(*exec.Error); ok && err2.Err == exec.ErrNotFound {
-			p.transitionFinal(NoSuchCommandError{
-				Name:  p.cmd.Args[0],
-				Cause: err,
-			})
-			return p.err
+		// These checks are such an eldrich horror *they can't even fit
+		// into a single switch statement*, because the go standard library
+		// cannot decide between "value" and "typed" errors, so here we
+		// go with both a type switch inside a typeswitch AND a set of
+		// pointer equality checks inside a typeswitch, and then just for
+		// good measure some string compares (because otherwise you can't
+		// tell the difference between the workingdir not existing and the
+		// command path not existing).
+		//
+		// Mercy.
+		//
+		switch err2 := err.(type) {
+		case *exec.Error:
+			switch err2.Err {
+			case exec.ErrNotFound, os.ErrPermission:
+				p.transitionFinal(NoSuchCommandError{
+					Name:  p.cmd.Args[0],
+					Cause: err,
+				})
+				return p.err
+			}
+		case *os.PathError:
+			switch err2.Op {
+			case "fork/exec":
+				p.transitionFinal(NoSuchCommandError{
+					Name:  p.cmd.Args[0],
+					Cause: err,
+				})
+				return p.err
+			}
 		}
 		p.transitionFinal(ProcMonitorError{Cause: err})
 		return p.err

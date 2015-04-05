@@ -82,7 +82,7 @@ func TestProcExec(t *testing.T) {
 				ExecProcCmd(cmd)
 			})
 		})
-		SkipConvey("Because part of the path doesn't exist", func() { // TODO
+		Convey("Because part of the path doesn't exist", func() {
 			cmd := nilifyFDs(exec.Command("/surely/not/a/command"))
 
 			Convey("Launch should fail immediately", func() {
