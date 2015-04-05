@@ -135,6 +135,13 @@ func (p *ExecProc) start() error {
 
 	atomic.StoreInt32(&p.state, int32(RUNNING))
 	if err := p.cmd.Start(); err != nil {
+		if err2, ok := err.(*exec.Error); ok && err2.Err == exec.ErrNotFound {
+			p.transitionFinal(NoSuchCommandError{
+				Name:  p.cmd.Args[0],
+				Cause: err,
+			})
+			return p.err
+		}
 		p.transitionFinal(ProcMonitorError{Cause: err})
 		return p.err
 	}

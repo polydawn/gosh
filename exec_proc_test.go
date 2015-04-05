@@ -66,7 +66,36 @@ func TestProcExec(t *testing.T) {
 	})
 
 	Convey("Given a command name that cannot be found", t, func() {
-		// TODO
+		// yes, these are different code paths.  yuck.
+		// chalk this up as another thing gosh helps you with normalizing.
+		Convey("Because the name can't be found", func() {
+			cmd := nilifyFDs(exec.Command("surely-not-a-command"))
+
+			Convey("Launch should fail immediately", func() {
+				defer func() {
+					err := recover()
+					So(err, ShouldNotBeNil)
+					So(err, ShouldHaveSameTypeAs, NoSuchCommandError{})
+					err2 := err.(NoSuchCommandError)
+					So(err2.Name, ShouldEqual, "surely-not-a-command")
+				}()
+				ExecProcCmd(cmd)
+			})
+		})
+		SkipConvey("Because part of the path doesn't exist", func() { // TODO
+			cmd := nilifyFDs(exec.Command("/surely/not/a/command"))
+
+			Convey("Launch should fail immediately", func() {
+				defer func() {
+					err := recover()
+					So(err, ShouldNotBeNil)
+					So(err, ShouldHaveSameTypeAs, NoSuchCommandError{})
+					err2 := err.(NoSuchCommandError)
+					So(err2.Name, ShouldEqual, "/surely/not/a/command")
+				}()
+				ExecProcCmd(cmd)
+			})
+		})
 	})
 
 	Convey("Given commands that will exit non-zero", t, func() {
