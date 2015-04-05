@@ -4,6 +4,7 @@ import (
 	"os/exec"
 	"strconv"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
@@ -105,6 +106,35 @@ func TestProcExec(t *testing.T) {
 			ExecProcCmd(nilifyFDs(exec.Command("kill", "-2", strconv.Itoa(p.Pid())))).Wait()
 
 			So(p.GetExitCode(), ShouldEqual, 22)
+			So(p.State(), ShouldEqual, FINISHED)
+		})
+		Convey("Stop/Cont signals should not be reported as exit codes", FailureContinues, func() {
+			cmd := nilifyFDs(exec.Command("bash", "-c", "sleep 1; exit 4;"))
+			p := ExecProcCmd(cmd)
+
+			ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGSTOP", strconv.Itoa(p.Pid())))).Wait()
+
+			// the command shouldn't be able to return while stopped, regardless of how short the sleep call is.
+			So(p.WaitSoon(1500*time.Millisecond), ShouldBeFalse) // FIXME oh my god this is terrible
+
+			ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGCONT", strconv.Itoa(p.Pid())))).Wait()
+
+			So(p.GetExitCode(), ShouldEqual, 4)
+			So(p.State(), ShouldEqual, FINISHED)
+		})
+		Convey("Stop/Cont signals should not be reported as exit codes, even under ptrace", FailureContinues, func() {
+			// This exercises that really bizzare 'else' case in `waitTry` and
+			// that whole retry loop around it.
+			cmd := nilifyFDs(exec.Command("bash", "-c", "sleep 1; exit 4;"))
+			p := ExecProcCmd(cmd)
+
+			// Ride the wild wind
+			So(syscall.PtraceAttach(p.Pid()), ShouldBeNil)
+			ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGSTOP", strconv.Itoa(p.Pid())))).Wait()
+			ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGCONT", strconv.Itoa(p.Pid())))).Wait()
+			So(syscall.PtraceDetach(p.Pid()), ShouldBeNil)
+
+			So(p.GetExitCode(), ShouldEqual, 4)
 			So(p.State(), ShouldEqual, FINISHED)
 		})
 	})
