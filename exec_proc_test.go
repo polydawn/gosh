@@ -1,6 +1,7 @@
 package gosh
 
 import (
+	"bytes"
 	"os/exec"
 	"strconv"
 	"sync"
@@ -90,6 +91,30 @@ func TestProcExec(t *testing.T) {
 
 			So(p.GetExitCode(), ShouldEqual, 137)
 			So(p.State(), ShouldEqual, FINISHED)
+		})
+		Convey("Nondeadly signals should not be reported as exit codes", FailureContinues, func() {
+			cmd := nilifyFDs(exec.Command("bash", "-c",
+				// this bash script does not die when it recieves a SIGINT; it catches it and exits orderly (with a different code).
+				"function catch_sig () { exit 22; }; trap catch_sig 2; sleep 1; echo 'do not want reach'; exit 88;",
+			))
+			var buf bytes.Buffer
+			cmd.Stdout = &buf
+			cmd.Stderr = &buf
+			p := ExecProcCmd(cmd)
+
+			// Wait a moment to give the bash time to set up its trap.
+			// Then spring the trap.
+			time.Sleep(200 * time.Millisecond)
+			ExecProcCmd(nilifyFDs(exec.Command("kill", "-2", strconv.Itoa(p.Pid())))).Wait()
+
+			// There's a substantial pause before the command returns, despite the fact we killed it almost immediately.
+			// Not entirely sure why.  I assume it has to do with go's concept of cleaning up before wait() returns, but I don't
+			// know what it's cleaning up after -- if you play with that trap script in a regular bash, it returns immediately
+			// and does not leave defunct processes around.
+
+			So(p.GetExitCode(), ShouldEqual, 22)
+			So(p.State(), ShouldEqual, FINISHED)
+			So(buf.String(), ShouldEqual, "")
 		})
 	})
 }
