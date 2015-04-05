@@ -2,6 +2,7 @@ package gosh
 
 import (
 	"os/exec"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -79,6 +80,16 @@ func TestProcExec(t *testing.T) {
 	})
 
 	Convey("Given commands that will recieve signals", t, func() {
-		// TODO
+		Convey("A process killed by a signal should exit with 128+SIG", FailureContinues, func() {
+			cmd := nilifyFDs(exec.Command("sleep", []string{"3"}...))
+			p := ExecProcCmd(cmd)
+
+			// We could make this better by exposing the `exec.Cmd`, but that
+			// needs a clear mechanism that doesn't ruin the Proc abstraction.
+			ExecProcCmd(nilifyFDs(exec.Command("kill", "-9", strconv.Itoa(p.Pid())))).Wait()
+
+			So(p.GetExitCode(), ShouldEqual, 137)
+			So(p.State(), ShouldEqual, FINISHED)
+		})
 	})
 }
