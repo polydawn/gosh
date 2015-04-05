@@ -113,10 +113,6 @@ func TestProcExec(t *testing.T) {
 			p := ExecProcCmd(cmd)
 
 			ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGSTOP", strconv.Itoa(p.Pid())))).Wait()
-
-			// the command shouldn't be able to return while stopped, regardless of how short the sleep call is.
-			So(p.WaitSoon(1500*time.Millisecond), ShouldBeFalse) // FIXME oh my god this is terrible
-
 			ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGCONT", strconv.Itoa(p.Pid())))).Wait()
 
 			So(p.GetExitCode(), ShouldEqual, 4)
