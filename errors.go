@@ -7,54 +7,115 @@ import (
 )
 
 /*
-	Error encountered while trying to set up or start executing a command.
+	`gosh.Error` is a grouping interface for all errors raised by gosh.
+
+	Errors fall into two main headings...
+
+	Configuration errors:
+	  - IncomprehensibleCommandModifierError
+	  - NoArgumentsError
+
+	Execution errors:
+	  - NoSuchCommandError
+	  - ProcMonitorError
+	  - FailureExitCode
+
+	Gosh typically raises errors with panics.  This is a deliberate design
+	choice to make the easiest, tersest usages of gosh feel as much as possible
+	like writing a shell script with "-e" mode (exit immediately on error) set.
+
+	All gosh errors can be distingushed by use of type switches.
+	(Gosh does not use "value" type errors (i.e. `var SomeError = fmt.Errorf[...]`)
+	because these are ineffective at holding information for programatic use later.)
+
+	Gosh errors may contain special fields with additional information -- one
+	near-ubiquitous example being the "cause" error -- which are always exported,
+	so that you can access them after casting the error to its specific type.
+	At no point should your application ever be required to parse strings in
+	order to handle gosh errors.
+
+	(Note: The authors of gosh recommend checking out a hierarchical error system,
+	like the one provided by `github.com/spacemonkeygo/errors`,
+	but we have not used it here in the interest of keeping gosh's
+	dependencies standard-library-only.)
 */
-type ProcStartError struct {
-	cause error
+type Error interface {
+	error
+	GoshError() // marker method
 }
 
-func (err ProcStartError) Cause() error {
-	return err.cause
+// bulk type assertion
+var _ []Error = []Error{
+	NoSuchCommandError{},
+	NoArgumentsErr{},
+	ProcMonitorError{},
+	IncomprehensibleCommandModifierError{},
+	FailureExitCode{},
 }
-
-func (err ProcStartError) Error() string {
-	return fmt.Sprintf("error starting proc: %s", err.Cause())
-}
-
-var NoArgumentsErr = fmt.Errorf("no arguments specified")
 
 /*
-	Error encountered while trying to wait for completion, or get information about
-	the exit status of a command.
+	NoSuchCommandError is raised when a command name (the first argument)
+	cannot be found.
 */
-type ProcMonitorError struct {
-	cause error
+type NoSuchCommandError struct {
+	Name  string
+	Cause error
 }
 
-func (err ProcMonitorError) Cause() error {
-	return err.cause
+func (err NoSuchCommandError) Error() string {
+	return fmt.Sprintf("gosh: command not found: %q", err.Name)
+}
+func (err NoSuchCommandError) GoshError() {}
+
+/*
+	NoArgumentsErr is raised when a command template is launched but
+	has no arguments.
+*/
+type NoArgumentsErr struct{}
+
+func (err NoArgumentsErr) Error() string {
+	return "gosh: no arguments specified"
+}
+func (err NoArgumentsErr) GoshError() {}
+
+/*
+	ProcMonitorError is raised to report any errors encountered while trying
+	to wait for completion, shuttle I/O, or get information about the exit
+	status of a command.
+
+	When a ProcMonitorError occurs, the Proc `Status()` will also become
+	`PANICKED`, and gosh may no longer be able to reliably detect the
+	state of the command.
+*/
+type ProcMonitorError struct {
+	Cause error
 }
 
 func (err ProcMonitorError) Error() string {
-	return fmt.Sprintf("error monitoring proc: %s", err.Cause())
+	return fmt.Sprintf("gosh: error monitoring proc: %s", err.Cause)
 }
+func (err ProcMonitorError) GoshError() {}
 
 /*
-	Error when Sh() or its family of functions is called with arguments of an unexpected
-	type.  Sh() functions only expect arguments of the public types declared in the
-	sh_modifiers.go file when setting up a command.
+	Error when any of the command templating functions is called with
+	arguments of an unexpected type.  The `interface{}` arguments to command
+	templating functions may only be of the following types:
+		- Opts
+		- Env
+		- ClearEnv
+		- string
+		- []string
 
 	This should mostly be a compile-time problem as long as you write your
-	script to not actually pass unchecked types of interface{} into Sh() commands.
+	script to not actually pass unchecked types of interface{}.
 */
-type IncomprehensibleCommandModifier struct {
+type IncomprehensibleCommandModifierError struct {
 	wat *interface{}
 }
 
-func (err IncomprehensibleCommandModifier) Error() string {
+func (err IncomprehensibleCommandModifierError) Error() string {
 	return fmt.Sprintf("gosh: incomprehensible command modifier: do not want type \"%v\"", whoru(reflect.ValueOf(*err.wat)))
 }
-
 func whoru(val reflect.Value) string {
 	kind := val.Kind()
 	typ := val.Type()
@@ -67,6 +128,7 @@ func whoru(val reflect.Value) string {
 		return typ.Name()
 	}
 }
+func (err IncomprehensibleCommandModifierError) GoshError() {}
 
 /*
 	Error for commands run by Sh that exited with a non-successful status.
@@ -87,3 +149,4 @@ func (err FailureExitCode) Error() string {
 	}
 	return fmt.Sprintf("gosh: command \"%s\" exited with unexpected status %d%s", err.Cmdname, err.Code, msg)
 }
+func (err FailureExitCode) GoshError() {}
