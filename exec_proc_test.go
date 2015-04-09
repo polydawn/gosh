@@ -135,8 +135,8 @@ func TestProcExec(t *testing.T) {
 
 			// Ride the wild wind
 			So(syscall.PtraceAttach(p.Pid()), ShouldBeNil)
-			ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGSTOP", strconv.Itoa(p.Pid())))).Wait()
-			ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGCONT", strconv.Itoa(p.Pid())))).Wait()
+			So(ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGSTOP", strconv.Itoa(p.Pid())))).GetExitCode(), ShouldEqual, 0)
+			So(ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGCONT", strconv.Itoa(p.Pid())))).GetExitCode(), ShouldEqual, 0)
 			So(syscall.PtraceDetach(p.Pid()), ShouldBeNil)
 
 			// SLOW: this waits for the entire `sleep` process
