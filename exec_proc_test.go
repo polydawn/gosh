@@ -87,7 +87,7 @@ func TestProcExec(t *testing.T) {
 
 			// We could make this better by exposing the `exec.Cmd`, but that
 			// needs a clear mechanism that doesn't ruin the Proc abstraction.
-			ExecProcCmd(nilifyFDs(exec.Command("kill", "-9", strconv.Itoa(p.Pid())))).Wait()
+			signal(p.Pid(), "9")
 
 			So(p.GetExitCode(), ShouldEqual, 137)
 			So(p.State(), ShouldEqual, FINISHED)
@@ -111,7 +111,7 @@ func TestProcExec(t *testing.T) {
 			// Then spring the trap.
 			// SLOW: it would be better if the shell could tell us when it's ready
 			time.Sleep(100 * time.Millisecond)
-			ExecProcCmd(nilifyFDs(exec.Command("kill", "-2", strconv.Itoa(p.Pid())))).Wait()
+			signal(p.Pid(), "2")
 
 			So(p.GetExitCode(), ShouldEqual, 22)
 			So(p.State(), ShouldEqual, FINISHED)
@@ -120,8 +120,8 @@ func TestProcExec(t *testing.T) {
 			cmd := nilifyFDs(exec.Command("bash", "-c", "sleep 1; exit 4;"))
 			p := ExecProcCmd(cmd)
 
-			ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGSTOP", strconv.Itoa(p.Pid())))).Wait()
-			ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGCONT", strconv.Itoa(p.Pid())))).Wait()
+			signal(p.Pid(), "SIGSTOP")
+			signal(p.Pid(), "SIGCONT")
 
 			// SLOW: this waits for the entire `sleep` process
 			So(p.GetExitCode(), ShouldEqual, 4)
@@ -135,8 +135,8 @@ func TestProcExec(t *testing.T) {
 
 			// Ride the wild wind
 			So(syscall.PtraceAttach(p.Pid()), ShouldBeNil)
-			So(ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGSTOP", strconv.Itoa(p.Pid())))).GetExitCode(), ShouldEqual, 0)
-			So(ExecProcCmd(nilifyFDs(exec.Command("kill", "-SIGCONT", strconv.Itoa(p.Pid())))).GetExitCode(), ShouldEqual, 0)
+			signal(p.Pid(), "SIGSTOP")
+			signal(p.Pid(), "SIGCONT")
 			So(syscall.PtraceDetach(p.Pid()), ShouldBeNil)
 
 			// SLOW: this waits for the entire `sleep` process
@@ -144,4 +144,8 @@ func TestProcExec(t *testing.T) {
 			So(p.State(), ShouldEqual, FINISHED)
 		})
 	})
+}
+
+func signal(pid int, sig string) {
+	So(ExecProcCmd(nilifyFDs(exec.Command("kill", "-"+sig, strconv.Itoa(pid)))).GetExitCode(), ShouldEqual, 0)
 }
