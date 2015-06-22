@@ -9,7 +9,7 @@ import (
 
 var ExecLauncher Launcher = func(cmdt Opts) Proc {
 	if cmdt.Args == nil || len(cmdt.Args) < 1 {
-		panic(NoArgumentsErr{})
+		panic(NoArgumentsError{})
 	}
 	cmd := exec.Command(cmdt.Args[0], cmdt.Args[1:]...)
 
