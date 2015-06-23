@@ -11,7 +11,11 @@ import (
 )
 
 // these tests assume a variety of system commands:
-// echo, sleep, sh
+// - echo, sleep, sh
+// and the existence of some usual basic linux filesystem locations:
+// - /usr
+// these are unfortunate presumptions, but treating them all as read-only is generally
+// less problematic than creating them on the fly and thus demanding sandboxing.
 
 // do this to all test commands by default less we muck our terminal
 func nilifyFDs(cmd *exec.Cmd) *exec.Cmd {
@@ -106,6 +110,31 @@ func TestProcExec(t *testing.T) {
 				}()
 				ExecProcCmd(cmd)
 			})
+		})
+	})
+
+	Convey("Given a working directory override", t, func() {
+		cmd := nilifyFDs(exec.Command("pwd"))
+
+		Convey("An existing directory should work", func() {
+			cmd.Dir = "/usr"
+			var buf bytes.Buffer
+			cmd.Stdout = &buf
+			p := ExecProcCmd(cmd)
+			So(p.GetExitCode(), ShouldEqual, 0)
+			So(p.State(), ShouldEqual, FINISHED)
+			So(buf.String(), ShouldEqual, "/usr\n")
+		})
+		Convey("A nonexistent directory should fail immediately", func() {
+			cmd.Dir = "/thisisnotapath"
+			defer func() {
+				err := recover()
+				So(err, ShouldNotBeNil)
+				So(err, ShouldHaveSameTypeAs, NoSuchCwdError{})
+				err2 := err.(NoSuchCwdError)
+				So(err2.Path, ShouldEqual, cmd.Dir)
+			}()
+			ExecProcCmd(cmd)
 		})
 	})
 

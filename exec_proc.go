@@ -165,6 +165,12 @@ func (p *ExecProc) start() error {
 					Cause: err,
 				})
 				return p.err
+			case "chdir":
+				p.transitionFinal(NoSuchCwdError{
+					Path:  p.cmd.Dir,
+					Cause: err,
+				})
+				return p.err
 			}
 		}
 		p.transitionFinal(ProcMonitorError{Cause: err})
