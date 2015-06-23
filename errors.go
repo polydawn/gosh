@@ -47,7 +47,7 @@ type Error interface {
 // bulk type assertion
 var _ []Error = []Error{
 	NoSuchCommandError{},
-	NoArgumentsErr{},
+	NoArgumentsError{},
 	ProcMonitorError{},
 	IncomprehensibleCommandModifierError{},
 	FailureExitCode{},
@@ -71,12 +71,12 @@ func (err NoSuchCommandError) GoshError() {}
 	NoArgumentsErr is raised when a command template is launched but
 	has no arguments.
 */
-type NoArgumentsErr struct{}
+type NoArgumentsError struct{}
 
-func (err NoArgumentsErr) Error() string {
+func (err NoArgumentsError) Error() string {
 	return "gosh: no arguments specified"
 }
-func (err NoArgumentsErr) GoshError() {}
+func (err NoArgumentsError) GoshError() {}
 
 /*
 	ProcMonitorError is raised to report any errors encountered while trying
