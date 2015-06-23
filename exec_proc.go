@@ -151,6 +151,8 @@ func (p *ExecProc) start() error {
 		case *exec.Error:
 			switch err2.Err {
 			case exec.ErrNotFound, os.ErrPermission:
+				// and yes, grepping the exec package indicates `os.ErrPermission` only occurs in specifically this case in the search for the executable file.
+				// specifically, you might worry that it's ambiguous with, say, execing with a chroot and getting perm denied; it is not.
 				p.transitionFinal(NoSuchCommandError{
 					Name:  p.cmd.Args[0],
 					Cause: err,
@@ -160,11 +162,20 @@ func (p *ExecProc) start() error {
 		case *os.PathError:
 			switch err2.Op {
 			case "fork/exec":
-				p.transitionFinal(NoSuchCommandError{
-					Name:  p.cmd.Args[0],
-					Cause: err,
-				})
-				return p.err
+				switch err2.Err {
+				case syscall.ENOENT:
+					p.transitionFinal(NoSuchCommandError{
+						Name:  p.cmd.Args[0],
+						Cause: err,
+					})
+					return p.err
+				default:
+					// if no special recognition,
+					// fall out to general ProcMonitorError.
+					// e.g. EPERM falls out here; we're not out to replace all stdlib errors,
+					// just make sure they're all wrapped and clearly indicated as emitted from gosh,
+					// and normalize the ones that are really wonky like (namely, no such command coming from 2~3 radically different branches).
+				}
 			case "chdir":
 				p.transitionFinal(NoSuchCwdError{
 					Path:  p.cmd.Dir,

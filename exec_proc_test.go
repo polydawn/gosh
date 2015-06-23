@@ -2,8 +2,10 @@ package gosh
 
 import (
 	"bytes"
+	"os"
 	"os/exec"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
@@ -133,6 +135,41 @@ func TestProcExec(t *testing.T) {
 				So(err, ShouldHaveSameTypeAs, NoSuchCwdError{})
 				err2 := err.(NoSuchCwdError)
 				So(err2.Path, ShouldEqual, cmd.Dir)
+			}()
+			ExecProcCmd(cmd)
+		})
+	})
+
+	Convey("Given a chroot", t, func() {
+		if os.Getuid() != 0 {
+			// well, technically merely having capability SYS_CHROOT should be enough, but this is easier to check
+			SkipConvey("SKIPPED: need root", nil)
+			return
+		}
+
+		cmd := nilifyFDs(exec.Command("pwd"))
+		cmd.SysProcAttr = &syscall.SysProcAttr{
+			Chroot: "/",
+		}
+
+		Convey("An existing directory should work", func() {
+			cmd.Dir = "/usr"
+			var buf bytes.Buffer
+			cmd.Stdout = &buf
+			p := ExecProcCmd(cmd)
+			So(p.GetExitCode(), ShouldEqual, 0)
+			So(p.State(), ShouldEqual, FINISHED)
+			So(buf.String(), ShouldEqual, "/usr\n")
+		})
+		Convey("A nonexistent directory should fail immediately", func() {
+			cmd.Dir = "/thisisnotapath"
+			defer func() {
+				err := recover()
+				So(err, ShouldNotBeNil)
+				So(err, ShouldHaveSameTypeAs, NoSuchCommandError{}) // THIS SUCKS
+				// want: NoSuchCwdError;
+				// can't do it: we literally get `&os.PathError{Op:"fork/exec", Path:"/bin/pwd", Err:0x2}` and there's no way to distinguish it.
+				// to the consumer: sorry :'(
 			}()
 			ExecProcCmd(cmd)
 		})
