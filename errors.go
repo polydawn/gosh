@@ -48,6 +48,7 @@ type Error interface {
 var _ []Error = []Error{
 	NoSuchCommandError{},
 	NoArgumentsError{},
+	NoSuchCwdError{},
 	ProcMonitorError{},
 	IncomprehensibleCommandModifierError{},
 	FailureExitCode{},
@@ -77,6 +78,20 @@ func (err NoArgumentsError) Error() string {
 	return "gosh: no arguments specified"
 }
 func (err NoArgumentsError) GoshError() {}
+
+/*
+	NoSuchCwdError is raised when a command template is launched but
+	has no arguments.
+*/
+type NoSuchCwdError struct {
+	Path  string // attempted cwd path
+	Cause error  // is an `*os.PathError`; may clarify whether not a dir or perm denied
+}
+
+func (err NoSuchCwdError) Error() string {
+	return fmt.Sprintf("gosh: cannot use %q for cwd: %s", err.Path, err.Cause)
+}
+func (err NoSuchCwdError) GoshError() {}
 
 /*
 	ProcMonitorError is raised to report any errors encountered while trying
