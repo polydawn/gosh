@@ -1,6 +1,7 @@
 package gosh
 
 import (
+	"bytes"
 	"os/exec"
 	"sync"
 	"testing"
@@ -27,6 +28,16 @@ func TestProcExec(t *testing.T) {
 		So(p.WaitSoon(1*time.Second), ShouldBeTrue)
 		So(p.GetExitCode(), ShouldEqual, 0)
 		So(p.State(), ShouldEqual, FINISHED)
+	})
+
+	Convey("Gathering output from a command should work", t, FailureContinues, func() {
+		cmd := nilifyFDs(exec.Command("echo", "output string"))
+		var buf bytes.Buffer
+		cmd.Stdout = &buf
+		p := ExecProcCmd(cmd)
+		So(p.GetExitCode(), ShouldEqual, 0)
+		So(p.State(), ShouldEqual, FINISHED)
+		So(buf.String(), ShouldEqual, "output string\n")
 	})
 
 	Convey("WaitSoon should return before a slow command", t, FailureContinues, func() {
