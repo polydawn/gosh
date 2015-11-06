@@ -1,6 +1,7 @@
 package gosh
 
 import (
+	"os"
 	"time"
 )
 
@@ -82,6 +83,10 @@ type Proc interface {
 		will be invoked immediately in the current goroutine.
 	*/
 	AddExitListener(callback func(Proc))
+
+	Kill()
+
+	Signal(os.Signal)
 }
 
 // TODO: The template system should know how to accept exit listeners up front.
