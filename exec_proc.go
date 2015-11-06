@@ -122,6 +122,20 @@ func (p *ExecProc) AddExitListener(callback func(Proc)) {
 	}
 }
 
+func (p *ExecProc) Kill() {
+	err := p.cmd.Process.Kill()
+	if err != nil {
+		panic(ProcMonitorError{err})
+	}
+}
+
+func (p *ExecProc) Signal(sig os.Signal) {
+	err := p.cmd.Process.Signal(sig)
+	if err != nil {
+		panic(ProcMonitorError{err})
+	}
+}
+
 //
 // Below lieth Guts
 //

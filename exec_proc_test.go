@@ -188,6 +188,21 @@ func TestProcExec(t *testing.T) {
 		})
 	})
 
+	Convey("Given commands that nobody likes", t, func() {
+		cmd := nilifyFDs(exec.Command("sleep", "2"))
+		tStart := time.Now()
+		p := ExecProcCmd(cmd)
+		Convey("Kill should cause near immediate return", FailureContinues, func() {
+			p.Kill()
+			code := p.GetExitCode()
+			So(time.Now(), ShouldHappenWithin, time.Duration(200*time.Millisecond), tStart)
+			Convey("Proc should be finished with code", FailureContinues, func() {
+				So(code, ShouldEqual, 128+9)
+				So(p.State(), ShouldEqual, FINISHED)
+			})
+		})
+	})
+
 	Convey("Given commands that will recieve signals", t, func() {
 		// TODO
 	})
