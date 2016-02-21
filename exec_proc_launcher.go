@@ -7,7 +7,28 @@ import (
 	"github.com/polydawn/gosh/iox"
 )
 
-var ExecLauncher Launcher = func(cmdt Opts) Proc {
+var _ Launcher = ExecLauncher
+
+/*
+	Launches a process via stdlib `exec`.
+*/
+func ExecLauncher(cmdt Opts) Proc {
+	return execLauncher(cmdt, nil)
+}
+
+/*
+	Launches a process via stdlib `exec`, and gives the provided hook function
+	a shot at running against the `exec.Cmd` to do any last-minute
+	preparations -- this is useful if you need to set exotic attributes like
+	`SysProcAttr` which are not normally exposed by Gosh's shellish layer.
+*/
+func ExecCustomizingLauncher(trailingHook func(*exec.Cmd)) Launcher {
+	return func(cmdt Opts) Proc {
+		return execLauncher(cmdt, trailingHook)
+	}
+}
+
+func execLauncher(cmdt Opts, trailingHook func(*exec.Cmd)) Proc {
 	if cmdt.Args == nil || len(cmdt.Args) < 1 {
 		panic(NoArgumentsError{})
 	}
@@ -40,6 +61,11 @@ var ExecLauncher Launcher = func(cmdt Opts) Proc {
 		} else {
 			cmd.Stderr = iox.WriterFromInterface(cmdt.Err)
 		}
+	}
+
+	// hook, down here it's your time
+	if trailingHook != nil {
+		trailingHook(cmd)
 	}
 
 	// go time
