@@ -3,6 +3,7 @@ package gosh
 import (
 	"bytes"
 	"os"
+	"strconv"
 )
 
 /*
@@ -291,6 +292,8 @@ func bake(cmdt Opts, args ...interface{}) Opts {
 			cmdt.Env = nil
 		case string:
 			cmdt = cmdt.Merge(Opts{Args: []string{arg}})
+		case int:
+			cmdt = cmdt.Merge(Opts{Args: []string{strconv.Itoa(arg)}})
 		case []string:
 			cmdt = cmdt.Merge(Opts{Args: arg})
 		default:
