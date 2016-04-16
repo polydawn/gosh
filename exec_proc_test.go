@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"os/exec"
+	"strconv"
 	"sync"
 	"syscall"
 	"testing"
@@ -204,6 +205,71 @@ func TestProcExec(t *testing.T) {
 	})
 
 	Convey("Given commands that will recieve signals", t, func() {
-		// TODO
+		Convey("A process killed by a signal should exit with 128+SIG", FailureContinues, func() {
+			cmd := nilifyFDs(exec.Command("sleep", []string{"3"}...))
+			p := ExecProcCmd(cmd)
+
+			// We could make this better by exposing the `exec.Cmd`, but that
+			// needs a clear mechanism that doesn't ruin the Proc abstraction.
+			signal(p.Pid(), "9")
+
+			So(p.GetExitCode(), ShouldEqual, 137)
+			So(p.State(), ShouldEqual, FINISHED)
+		})
+		conveyFast := func(x ...interface{}) {
+			if testing.Short() {
+				SkipConvey(x...)
+			} else {
+				Convey(x...)
+			}
+		}
+		conveyFast("Nondeadly signals should not be reported as exit codes", FailureContinues, func() {
+			cmd := nilifyFDs(exec.Command("bash", "-c",
+				// this bash script does not die when it recieves a SIGINT; it catches it and exits orderly (with a different code).
+				"function catch_sig () { exit 22; }; trap catch_sig 2; { sleep 2 & } ; wait ; exit 88;",
+				// "function catch_sig () { echo 'trap' ; date ; jobs ; echo 'disowning' ; disown ; jobs ; exit 22; }; trap catch_sig 2; echo 'start' ; date ; { (sleep 2 ; echo 'sleep survived' ; date) & }; jobs ; echo 'prewait' ; date ; wait ; echo 'postwait' ; date ; echo 'do not want reach'; exit 88;",
+			))
+			p := ExecProcCmd(cmd)
+
+			// Wait a moment to give the bash time to set up its trap.
+			// Then spring the trap.
+			// SLOW: it would be better if the shell could tell us when it's ready
+			time.Sleep(100 * time.Millisecond)
+			signal(p.Pid(), "2")
+
+			So(p.GetExitCode(), ShouldEqual, 22)
+			So(p.State(), ShouldEqual, FINISHED)
+		})
+		conveyFast("Stop/Cont signals should not be reported as exit codes", FailureContinues, func() {
+			cmd := nilifyFDs(exec.Command("bash", "-c", "sleep 1; exit 4;"))
+			p := ExecProcCmd(cmd)
+
+			signal(p.Pid(), "SIGSTOP")
+			signal(p.Pid(), "SIGCONT")
+
+			// SLOW: this waits for the entire `sleep` process
+			So(p.GetExitCode(), ShouldEqual, 4)
+			So(p.State(), ShouldEqual, FINISHED)
+		})
+		conveyFast("Stop/Cont signals should not be reported as exit codes, even under ptrace", FailureContinues, func() {
+			// This exercises that really bizzare 'else' case in `waitTry` and
+			// that whole retry loop around it.
+			cmd := nilifyFDs(exec.Command("bash", "-c", "sleep 1; exit 4;"))
+			p := ExecProcCmd(cmd)
+
+			// Ride the wild wind
+			So(syscall.PtraceAttach(p.Pid()), ShouldBeNil)
+			signal(p.Pid(), "SIGSTOP")
+			signal(p.Pid(), "SIGCONT")
+			So(syscall.PtraceDetach(p.Pid()), ShouldBeNil)
+
+			// SLOW: this waits for the entire `sleep` process
+			So(p.GetExitCode(), ShouldEqual, 4)
+			So(p.State(), ShouldEqual, FINISHED)
+		})
 	})
+}
+
+func signal(pid int, sig string) {
+	So(ExecProcCmd(nilifyFDs(exec.Command("kill", "-"+sig, strconv.Itoa(pid)))).GetExitCode(), ShouldEqual, 0)
 }
